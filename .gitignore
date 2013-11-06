@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 coverage
 doc
 pkg
@@ -8,3 +9,25 @@ pkg
 .DS_Store
 .bundle/*
 Gemfile.lock
+=======
+*.gem
+*.rbc
+.bundle
+.config
+.yardoc
+Gemfile.lock
+InstalledFiles
+_yardoc
+coverage
+doc/
+lib/bundler/man
+pkg
+rdoc
+spec/reports
+test/tmp
+test/version_tmp
+tmp
+.rspec-local
+.ruby-version
+_site
+>>>>>>> 8f436569fbbf55b246a385a1514f8bca85b28e13

@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+<<<<<<< HEAD
 
 require 'optparse'
 require 'fileutils'
@@ -90,3 +91,12 @@ files.each do |file, content|
 end
 
 puts "[done] capified!"
+=======
+puts "-" * 80
+puts "Capistrano 3.x is incompatible with Capistrano 2.x. "
+puts
+puts "This command has become `cap install` in Capistrano 3.x"
+puts
+puts "For more information see http://www.capistranorb.com/"
+puts "-" * 80
+>>>>>>> 8f436569fbbf55b246a385a1514f8bca85b28e13

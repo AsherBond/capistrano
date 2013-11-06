@@ -1,7 +1,15 @@
 language: ruby
 rvm:
+<<<<<<< HEAD
   - 1.8.7
   - 1.9.2
   - 1.9.3
   - 2.0.0
   - ree
+=======
+  - 2.0.0
+  - 1.9.3
+  - 1.9.2
+  - rbx-19mode
+script: "rake spec"
+>>>>>>> 8f436569fbbf55b246a385a1514f8bca85b28e13

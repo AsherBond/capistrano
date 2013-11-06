@@ -1,4 +1,9 @@
 #!/usr/bin/env ruby
+<<<<<<< HEAD
 
 require 'capistrano/cli'
 Capistrano::CLI.execute
+=======
+require 'capistrano/all'
+Capistrano::Application.new.run
+>>>>>>> 8f436569fbbf55b246a385a1514f8bca85b28e13
