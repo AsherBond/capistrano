@@ -2,10 +2,28 @@
 
 Reverse Chronological Order:
 
+## `3.1.0` (not released)
+
+  * `deploy:restart` task is no longer run by default.
+    From this version, developers who restart the app on each deploy need to declare it in their deploy flow (@kirs)
+  * Fixed bug when `deploy:cleanup` was executed twice by default (@kirs)
+  * Config location can now be changed with `deploy_config_path` and `stage_config_path` options (@seenmyfate)
+  * `no_release` option is now available (@seenmyfate)
+  * Raise an error if developer tries to define `:all` role, which is reserved (@kirs)
+  * `deploy:fallback` hook was added to add some custom behaviour on failed deploy (@seenmyfate)
+  * Correctly infer namespace in task enhancements (@seenmyfate)
+  * Add SHA to revision log (@blackxored)
+
+## `3.0.1`
+
+  * `capify` not listed as executable (@leehambley)
+  * Confirm license as MIT (@leehambley)
+  * Move the git ssh helper to application path (@mpapis)
+
 ## `3.0.0`
 
 If you are coming here to wonder why your Capfile doesn't work anymore, please
-vendor lock your Capistrano at 2.5.x, whichever version was working for you
+vendor lock your Capistrano at 2.x, whichever version was working for you
 until today.
 
 Capistrano 3 is a ground-up rewrite with modularity, stability, speed and

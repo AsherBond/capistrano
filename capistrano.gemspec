@@ -50,12 +50,14 @@ Gem::Specification.new do |gem|
   gem.email         = ["seenmyfate@gmail.com", "lee.hambley@gmail.com"]
   gem.description   = %q{Capistrano is a utility and framework for executing commands in parallel on multiple remote machines, via SSH.}
   gem.summary       = %q{Capistrano - Welcome to easy deployment with Ruby over SSH}
-  gem.homepage      = ""
+  gem.homepage      = "http://capistranorb.com/"
 
   gem.files         = `git ls-files`.split($/)
-  gem.executables   = 'cap'
+  gem.executables   = ['cap', 'capify']
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
+
+  gem.licenses      = ['MIT']
 
   gem.post_install_message = "If you're updating Capistrano from 2.x.x, we recommend you to read the upgrade guide: http://www.capistranorb.com/documentation/upgrading/"
 

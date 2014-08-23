@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## Capistrano
 
 [![Build
@@ -95,6 +96,9 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 =======
 # Capistrano [![Build Status](https://travis-ci.org/capistrano/capistrano.png?branch=v3)](https://travis-ci.org/capistrano/capistrano)
+=======
+# Capistrano [![Build Status](https://travis-ci.org/capistrano/capistrano.png?branch=v3)](https://travis-ci.org/capistrano/capistrano) [![Code Climate](https://codeclimate.com/github/capistrano/capistrano.png)](https://codeclimate.com/github/capistrano/capistrano)
+>>>>>>> d13cab9bb78eb1ec9e4f0aea5ed2463390f2f036
 
 ## Requirements
 
@@ -105,19 +109,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 Add this line to your application's Gemfile:
 
 ``` ruby
-gem 'capistrano', '~> 3.0.0'
+gem 'capistrano', '~> 3.0.1'
 ```
 
 And then execute:
 
-``` ruby
-$ bundle --binstubs
+``` sh
+$ bundle install
 ```
 
 Capify:
 *make sure there's no "Capfile" or "capfile" present*
-``` shell
-$ cap install
+``` sh
+$ bundle exec cap install
 ```
 
 This creates the following files:
@@ -136,21 +140,21 @@ This creates the following files:
 
 To create different stages:
 
-``` shell
-$ cap install STAGES=local,sandbox,qa,production
+``` sh
+$ bundle exec cap install STAGES=local,sandbox,qa,production
 ```
 
 ## Usage
 
-``` shell
-$ cap -vT
+``` sh
+$ bundle exec cap -vT
 
-$ cap staging deploy
-$ cap production deploy
+$ bundle exec cap staging deploy
+$ bundle exec cap production deploy
 
-$ cap production deploy --dry-run
-$ cap production deploy --prereqs
-$ cap production deploy --trace
+$ bundle exec cap production deploy --dry-run
+$ bundle exec cap production deploy --prereqs
+$ bundle exec cap production deploy --trace
 ```
 
 ## Tasks
@@ -222,9 +226,9 @@ This method is widely used.
 ``` ruby
 desc "Ask about breakfast"
 task :breakfast do
-  breakfast = ask(:breakfast, "What would you like your colleagues to you for breakfast?")
+  ask(:breakfast, "What would you like your colleagues to bring you for breakfast?")
   on roles(:all) do |h|
-    execute "echo \"$(whoami) wants #{breakfast} for breakfast!\" | wall"
+    execute "echo \"$(whoami) wants #{fetch(:breakfast)} for breakfast!\""
   end
 end
 ```
@@ -257,14 +261,14 @@ Execute arbitrary remote commands, to use this simply add
 `require 'capistrano/console'` which will add the necessary tasks to your
 environment:
 
-``` shell
-$ cap staging console
+``` sh
+$ bundle exec cap staging console
 ```
 
 Then, after setting up the server connections, this is how that might look:
 
-```
-$ cap production console
+``` sh
+$ bundle exec cap production console
 capistrano console - enter command to execute on production
 production> uptime
  INFO [94db8027] Running /usr/bin/env uptime on leehambley@example.com:22
@@ -303,21 +307,51 @@ your company lacks the infrastructure to test this in a staging environment).
 
 The following variables are settable:
 
+| Variable Name         | Description                                                          | Notes                                                           |
+|:---------------------:|----------------------------------------------------------------------|-----------------------------------------------------------------|
+| `:repo_url`           | The URL of your Git repository                                       | file://, https://, or ssh:// are all supported                  |
+| `:git_https_username` | The (optional) username for accessing your Git repository over HTTPS | if this is an SSH connection, this setting will have no effect. |
+| `:git_https_password` | The (optional) password for accessing your Git repository over HTTPS | if this is an SSH connection, this setting will have no effect. |
+| `:tmp_dir` | The (optional) temp directory that will be used (default: /tmp) | if you have a shared web host, this setting may need to be set (i.e. /home/user/tmp/capistrano). |
+
+__Support removed__ for following variables:
+
 | Variable Name         | Description                                                         | Notes                                                           |
 |:---------------------:|---------------------------------------------------------------------|-----------------------------------------------------------------|
-| `:repo_url`           | The URL of your Git repository                                      | file://, https://, or ssh:// are all supported                  |
-| `:git_https_username` | The (optional) username for accessing your Git repostory over HTTPS | if this is an SSH connection, this setting will have no effect. |
-| `:git_https_password` | The (optional) password for accessing your Git repostory over HTTPS | if this is an SSH connection, this setting will have no effect. |
-| `:tmp_dir` | The (optional) temp directory that will be used (default: /tmp) | if you have a shared web host, this setting may need to be set (i.e. /home/user/tmp/capistrano). |
+| `:copy_exclude`       | The (optional) array of files and/or folders excluded from deploy | Replaced by Git's native `.gitattributes`, see [#515](https://github.com/capistrano/capistrano/issues/515) for more info. |
 
 ## SSHKit
 
-[SSHKit](https://github.com/capistrano/sshkit) is the driver for SSH
+[SSHKit](https://github.com/leehambley/sshkit) is the driver for SSH
 connections behind the scenes in Capistrano, depending how deep you dig, you
 might run into interfaces that come directly from SSHKit (the configuration is
 a good example).
 
 ## Licence
 
+<<<<<<< HEAD
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">Capistrano</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="http://www.capistranorb.com." property="cc:attributionName" rel="cc:attributionURL">Lee Hambley and Tom Clements</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US">Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License</a>.<br />Based on a work at <a xmlns:dct="http://purl.org/dc/terms/" href="https://www.github.com/capistrano" rel="dct:source">https://www.github.com/capistrano</a>.
 >>>>>>> 8f436569fbbf55b246a385a1514f8bca85b28e13
+=======
+The MIT License (MIT)
+
+Copyright (c) 2012-2013 Tom Clements, Lee Hambley
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+>>>>>>> d13cab9bb78eb1ec9e4f0aea5ed2463390f2f036
