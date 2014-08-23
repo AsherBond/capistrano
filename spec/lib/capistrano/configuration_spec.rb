@@ -8,7 +8,15 @@ module Capistrano
     describe '.env' do
       it 'is a global accessor to a single instance' do
         Configuration.env.set(:test, true)
-        expect(Configuration.env.fetch(:test)).to be_true
+        expect(Configuration.env.fetch(:test)).to be_truthy
+      end
+    end
+
+    describe '.reset!' do
+      it 'blows away the existing `env` and creates a new one' do
+        old_env = Configuration.env
+        Configuration.reset!
+        expect(Configuration.env).not_to be old_env
       end
     end
 
@@ -53,12 +61,67 @@ module Capistrano
         end
       end
 
+      context 'value is a lambda' do
+        subject { config.fetch(:key, lambda { :lambda } ) }
+        it 'calls the lambda' do
+          expect(subject).to eq :lambda
+        end
+      end
+
+      context 'value inside proc inside a proc' do
+        subject { config.fetch(:key, Proc.new { Proc.new { "some value" } } ) }
+        it 'calls all procs and lambdas' do
+          expect(subject).to eq "some value"
+        end
+      end
+
+      context 'value inside lambda inside a lambda' do
+        subject { config.fetch(:key, lambda { lambda { "some value" } } ) }
+        it 'calls all procs and lambdas' do
+          expect(subject).to eq "some value"
+        end
+      end
+
+      context 'value inside lambda inside a proc' do
+        subject { config.fetch(:key, Proc.new { lambda { "some value" } } ) }
+        it 'calls all procs and lambdas' do
+          expect(subject).to eq "some value"
+        end
+      end
+
+      context 'value inside proc inside a lambda' do
+        subject { config.fetch(:key, lambda { Proc.new { "some value" } } ) }
+        it 'calls all procs and lambdas' do
+          expect(subject).to eq "some value"
+        end
+      end
+
+      context 'lambda with parameters' do
+        subject { config.fetch(:key, lambda { |c| c }).call(42) }
+        it 'is returned as a lambda' do
+          expect(subject).to eq 42
+        end
+      end
+
       context 'block is passed to fetch' do
         subject { config.fetch(:key, :default) { fail 'we need this!' } }
 
         it 'returns the block value' do
           expect { subject }.to raise_error
         end
+      end
+    end
+
+    describe 'keys' do
+      subject { config.keys }
+
+      before do
+        config.set(:key1, :value1)
+        config.set(:key2, :value2)
+      end
+
+      it 'returns all set keys' do
+        expect(subject).to match_array [:key1, :key2]
       end
     end
 
@@ -75,14 +138,15 @@ module Capistrano
 
     describe 'asking' do
       let(:question) { stub }
+      let(:options) { Hash.new }
 
       before do
-        Configuration::Question.expects(:new).with(config, :branch, :default).
+        Configuration::Question.expects(:new).with(config, :branch, :default, options).
           returns(question)
       end
 
       it 'prompts for the value when fetching' do
-        config.ask(:branch, :default)
+        config.ask(:branch, :default, options)
         expect(config.fetch(:branch)).to eq question
       end
     end

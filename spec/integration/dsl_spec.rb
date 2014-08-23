@@ -4,6 +4,10 @@ describe Capistrano::DSL do
 
   let(:dsl) { Class.new.extend Capistrano::DSL }
 
+  before do
+    Capistrano::Configuration.reset!
+  end
+
   describe 'setting and fetching hosts' do
     describe 'when defining a host using the `server` syntax' do
       before do
@@ -50,6 +54,14 @@ describe Capistrano::DSL do
 
       describe 'fetching servers by role' do
         subject { dsl.roles(:app) }
+
+        it 'returns the servers' do
+          expect(subject.map(&:hostname)).to eq %w{example3.com example4.com}
+        end
+      end
+
+      describe 'fetching servers by an array of roles' do
+        subject { dsl.roles([:app]) }
 
         it 'returns the servers' do
           expect(subject.map(&:hostname)).to eq %w{example3.com example4.com}
@@ -144,6 +156,14 @@ describe Capistrano::DSL do
         end
       end
 
+      describe 'fetching servers by an array of roles' do
+        subject { dsl.roles([:app]) }
+
+        it 'returns the servers' do
+          expect(subject.map(&:hostname)).to eq %w{example3.com example4.com}
+        end
+      end
+
       describe 'fetching filtered servers by role' do
         subject { dsl.roles(:app, filter: :active) }
 
@@ -173,6 +193,36 @@ describe Capistrano::DSL do
           it 'returns the servers' do
             expect(subject.hostname).to eq 'example4.com'
           end
+        end
+      end
+
+    end
+
+    describe 'when defining a host using a combination of the `server` and `role` syntax' do
+
+      before do
+        dsl.server 'db@example1.com:1234', roles: %w{db}, active: true
+        dsl.server 'root@example1.com:1234', roles: %w{web}, active: true
+        dsl.server 'example1.com:5678', roles: %w{web}, active: true
+        dsl.role :app, %w{deployer@example1.com:1234}
+        dsl.role :app, %w{example1.com:5678}
+      end
+
+      describe 'fetching all servers' do
+        subject { dsl.roles(:all).map { |server| "#{server.user}@#{server.hostname}:#{server.port}" } }
+
+        it 'creates a server instance for each unique user@host:port combination' do
+          expect(subject).to eq %w{db@example1.com:1234 root@example1.com:1234 @example1.com:5678 deployer@example1.com:1234}
+        end
+      end
+
+      describe 'fetching servers for a role' do
+        it 'roles defined using the `server` syntax are included' do
+          expect(dsl.roles(:web).size).to eq(2)
+        end
+
+        it 'roles defined using the `role` syntax are included' do
+          expect(dsl.roles(:app).size).to eq(2)
         end
       end
 
@@ -233,7 +283,7 @@ describe Capistrano::DSL do
   describe 'asking for a variable' do
     before do
       dsl.ask(:scm, :svn)
-      $stdout.stubs(:puts)
+      $stdout.stubs(:print)
     end
 
     context 'variable is provided' do
@@ -267,22 +317,22 @@ describe Capistrano::DSL do
     context 'variable is an non-empty array' do
       let(:linked_files) { %w{1} }
 
-      it { should be_true }
+      it { expect(subject).to be_truthy }
     end
 
     context 'variable is an empty array' do
       let(:linked_files) { [] }
-      it { should be_false }
+      it { expect(subject).to be_falsey }
     end
 
     context 'variable exists, is not an array' do
       let(:linked_files) { stub }
-      it { should be_true }
+      it { expect(subject).to be_truthy }
     end
 
     context 'variable is nil' do
       let(:linked_files) { nil }
-      it { should be_false }
+      it { expect(subject).to be_falsey }
     end
   end
 
@@ -318,7 +368,7 @@ describe Capistrano::DSL do
     end
 
     it 'sets the backend pty' do
-      expect(backend.pty).to be_true
+      expect(backend.pty).to be_truthy
     end
 
     it 'sets the backend connection timeout' do
@@ -434,6 +484,36 @@ describe Capistrano::DSL do
 
         it 'returns the custom path' do
           expect(subject).to eq 'my/custom/path'
+        end
+      end
+    end
+  end
+
+  describe 'local_user' do
+    before do
+      dsl.set :local_user, -> { Etc.getlogin }
+    end
+
+    describe 'fetching local_user' do
+      subject { dsl.local_user }
+
+      context 'where a local_user is not set' do
+        before do
+          Etc.expects(:getlogin).returns('login')
+        end
+
+        it 'returns the login name' do
+          expect(subject.to_s).to eq 'login'
+        end
+      end
+
+      context 'where a local_user is set' do
+        before do
+          dsl.set(:local_user, -> { 'custom login' })
+        end
+
+        it 'returns the custom name' do
+          expect(subject.to_s).to eq 'custom login'
         end
       end
     end

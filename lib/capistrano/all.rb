@@ -1,6 +1,7 @@
 require 'rake'
 require 'sshkit'
 require 'sshkit/dsl'
+require 'io/console'
 
 Rake.application.options.trace = true
 

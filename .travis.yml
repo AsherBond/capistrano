@@ -1,6 +1,7 @@
 language: ruby
 rvm:
 <<<<<<< HEAD
+<<<<<<< HEAD
   - 1.8.7
   - 1.9.2
   - 1.9.3
@@ -13,3 +14,11 @@ rvm:
   - rbx-19mode
 script: "rake spec"
 >>>>>>> 8f436569fbbf55b246a385a1514f8bca85b28e13
+=======
+  - 2.1.0
+  - 2.0.0
+  - 1.9.3
+  - rbx-2
+script: bundle exec rake spec
+cache: bundler
+>>>>>>> e63eda7a0f08a1ad80ad11d5f6073aa612aae233

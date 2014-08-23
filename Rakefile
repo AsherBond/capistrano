@@ -12,8 +12,15 @@ end
 task :default => :test
 =======
 require "bundler/gem_tasks"
+require "cucumber/rake/task"
+require "rspec/core/rake_task"
 
 task :default => :spec
-require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new
+<<<<<<< HEAD
 >>>>>>> 8f436569fbbf55b246a385a1514f8bca85b28e13
+=======
+
+Cucumber::Rake::Task.new(:features)
+
+>>>>>>> e63eda7a0f08a1ad80ad11d5f6073aa612aae233

@@ -66,10 +66,14 @@ module Capistrano
       def env
         @env ||= new
       end
+
+      def reset!
+        @env = new
+      end
     end
 
-    def ask(key, default=nil)
-      question = Question.new(self, key, default)
+    def ask(key, default=nil, options={})
+      question = Question.new(self, key, default, options)
       set(key, question)
     end
 
@@ -83,11 +87,14 @@ module Capistrano
 
     def fetch(key, default=nil, &block)
       value = fetch_for(key, default, &block)
-      if value.respond_to?(:call)
-        set(key, value.call)
-      else
-        value
+      while callable_without_parameters?(value)
+        value = set(key, value.call)
       end
+      return value
+    end
+
+    def keys
+      config.keys
     end
 
     def role(name, hosts, options={})
@@ -152,6 +159,12 @@ module Capistrano
       end
     end
 
+<<<<<<< HEAD
 >>>>>>> 8f436569fbbf55b246a385a1514f8bca85b28e13
+=======
+    def callable_without_parameters?(x)
+      x.respond_to?(:call) && ( !x.respond_to?(:arity) || x.arity == 0)
+    end
+>>>>>>> e63eda7a0f08a1ad80ad11d5f6073aa612aae233
   end
 end

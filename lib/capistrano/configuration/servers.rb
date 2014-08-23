@@ -114,6 +114,7 @@ module Capistrano
 =======
 require 'set'
 require_relative 'servers/role_filter'
+require_relative 'servers/host_filter'
 module Capistrano
   class Configuration
     class Servers
@@ -144,11 +145,7 @@ module Capistrano
       private
 
       def server(host)
-        if host.is_a? Server
-          host
-        else
-          servers.find { |server| server.matches?(host) } || Server.new(host)
-        end
+        servers.find { |server| server.matches? Server[host] } || Server[host]
       end
 
       def fetch(role)
@@ -157,7 +154,7 @@ module Capistrano
 
       def fetch_roles(required, options)
         filter_roles = RoleFilter.for(required, available_roles)
-        select(servers_with_roles(filter_roles), options)
+        HostFilter.for(select(servers_with_roles(filter_roles), options))
       end
 
       def servers_with_roles(roles)

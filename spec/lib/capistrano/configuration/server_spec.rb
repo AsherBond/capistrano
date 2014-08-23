@@ -3,7 +3,7 @@ require 'spec_helper'
 module Capistrano
   class Configuration
     describe Server do
-      let(:server) { Server.new('hostname') }
+      let(:server) { Server.new('root@hostname:1234') }
 
       describe 'adding a role' do
         subject { server.add_role(:test) }
@@ -28,26 +28,31 @@ module Capistrano
         end
 
         it 'adds the role' do
-          expect{subject}.to be_true
+          expect(subject).to be_truthy
         end
       end
 
       describe 'comparing identity' do
-        subject { server.matches? hostname }
+        subject { server.matches? Server[hostname] }
 
-        context 'with the same hostname' do
-          let(:hostname) { 'hostname' }
-          it { should be_true }
+        context 'with the same user, hostname and port' do
+          let(:hostname) { 'root@hostname:1234' }
+          it { expect(subject).to be_truthy }
         end
 
-        context 'with the same hostname and a user' do
-          let(:hostname) { 'user@hostname' }
-          it { should be_true }
+        context 'with a different user' do
+          let(:hostname) { 'deployer@hostname:1234' }
+          it { expect(subject).to be_falsey }
+        end
+
+        context 'with a different port' do
+          let(:hostname) { 'root@hostname:5678' }
+          it { expect(subject).to be_falsey }
         end
 
         context 'with a different hostname' do
-          let(:hostname) { 'otherserver' }
-          it { should be_false }
+          let(:hostname) { 'root@otherserver:1234' }
+          it { expect(subject).to be_falsey }
         end
       end
 
@@ -64,7 +69,7 @@ module Capistrano
 
         context 'server is not primary' do
           it 'is falesy' do
-            expect(subject).to be_false
+            expect(subject).to be_falsey
           end
         end
       end
@@ -144,7 +149,7 @@ module Capistrano
         end
 
         context 'options are empty' do
-          it { should be_true }
+          it { expect(subject).to be_truthy }
         end
 
         context 'value is a symbol' do
@@ -152,34 +157,34 @@ module Capistrano
 
             context 'with :filter' do
               let(:options) { { filter: :active }}
-              it { should be_true }
+              it { expect(subject).to be_truthy }
             end
 
             context 'with :select' do
               let(:options) { { select: :active }}
-              it { should be_true }
+              it { expect(subject).to be_truthy }
             end
 
             context 'with :exclude' do
               let(:options) { { exclude: :active }}
-              it { should be_false }
+              it { expect(subject).to be_falsey }
             end
           end
 
           context 'value does not match server properly' do
             context 'with :filter' do
               let(:options) { { filter: :inactive }}
-              it { should be_false }
+              it { expect(subject).to be_falsey }
             end
 
             context 'with :select' do
               let(:options) { { select: :inactive }}
-              it { should be_false }
+              it { expect(subject).to be_falsey }
             end
 
             context 'with :exclude' do
               let(:options) { { exclude: :inactive }}
-              it { should be_true }
+              it { expect(subject).to be_truthy }
             end
           end
         end
@@ -189,17 +194,17 @@ module Capistrano
 
             context 'with :filter' do
               let(:options) { { filter: ->(s) { s.properties.active } } }
-              it { should be_true }
+              it { expect(subject).to be_truthy }
             end
 
             context 'with :select' do
               let(:options) { { select: ->(s) { s.properties.active } } }
-              it { should be_true }
+              it { expect(subject).to be_truthy }
             end
 
             context 'with :exclude' do
               let(:options) { { exclude: ->(s) { s.properties.active } } }
-              it { should be_false }
+              it { expect(subject).to be_falsey }
             end
 
           end
@@ -207,17 +212,17 @@ module Capistrano
           context 'value does not match server properly' do
             context 'with :filter' do
               let(:options) { { filter: ->(s) { s.properties.inactive } } }
-              it { should be_false }
+              it { expect(subject).to be_falsey }
             end
 
             context 'with :select' do
               let(:options) { { select: ->(s) { s.properties.inactive } } }
-              it { should be_false }
+              it { expect(subject).to be_falsey }
             end
 
             context 'with :exclude' do
               let(:options) { { exclude: ->(s) { s.properties.inactive } } }
-              it { should be_true }
+              it { expect(subject).to be_truthy }
             end
 
           end
@@ -266,6 +271,15 @@ module Capistrano
 
       end
 
+      describe ".[]" do
+        it 'creates a server if its argument is not already a server' do
+          expect(Server['hostname:1234']).to be_a Server
+        end
+
+        it 'returns its argument if it is already a server' do
+          expect(Server[server]).to be server
+        end
+      end
     end
   end
 end

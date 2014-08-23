@@ -5,6 +5,10 @@ module Capistrano
       extend Forwardable
       def_delegators :properties, :roles, :fetch, :set
 
+      def self.[](host)
+        host.is_a?(Server) ? host : new(host)
+      end
+
       def add_roles(roles)
         Array(roles).each { |role| add_role(role) }
       end
@@ -16,10 +20,6 @@ module Capistrano
 
       def has_role?(role)
         roles.include? role.to_sym
-      end
-
-      def matches?(host)
-        hostname == Server.new(host).hostname
       end
 
       def select?(options)
@@ -48,6 +48,10 @@ module Capistrano
 
       def roles_array
         roles.to_a
+      end
+
+      def matches?(other)
+        user == other.user && hostname == other.hostname && port == other.port
       end
 
       private
@@ -80,6 +84,10 @@ module Capistrano
 
         def roles
           @roles ||= Set.new
+        end
+
+        def keys
+          @properties.keys
         end
 
         def method_missing(key, value=nil)

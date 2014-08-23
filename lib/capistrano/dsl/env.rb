@@ -27,8 +27,8 @@ module Capistrano
         env.delete(key)
       end
 
-      def ask(key, value)
-        env.ask(key, value)
+      def ask(key, value, options={})
+        env.ask(key, value, options)
       end
 
       def role(name, servers, options={})
@@ -40,16 +40,11 @@ module Capistrano
       end
 
       def roles(*names)
-        env.roles_for(names)
+        env.roles_for(names.flatten)
       end
 
       def release_roles(*names)
-        options = { exclude: :no_release }
-        if names.last.is_a? Hash
-          names.last.merge(options)
-        else
-          names << options
-        end
+        names << { exclude: :no_release } unless names.last.is_a? Hash
         roles(*names)
       end
 

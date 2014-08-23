@@ -3,8 +3,11 @@ module Capistrano
 
     def initialize
       super
-      @name = "cap"
       @rakefiles = %w{capfile Capfile capfile.rb Capfile.rb} << capfile
+    end
+
+    def name
+      "cap"
     end
 
     def run
@@ -13,25 +16,54 @@ module Capistrano
     end
 
     def sort_options(options)
-      options.push(version,dry_run)
+      not_applicable_to_capistrano = %w(quiet silent verbose)
+      options.reject! do |(switch, *)|
+        switch =~ /--#{Regexp.union(not_applicable_to_capistrano)}/
+      end
+
+      options.push(version, roles, dry_run, hostfilter)
       super
     end
 
-    def load_rakefile
-      @name = 'cap'
-      super
+    def handle_options
+      options.rakelib = ['rakelib']
+      options.trace_output = $stderr
+
+      OptionParser.new do |opts|
+        opts.banner = "See full documentation at http://capistranorb.com/."
+        opts.separator ""
+        opts.separator "Install capistrano in a project:"
+        opts.separator "    bundle exec cap install [STAGES=qa,staging,production,...]"
+        opts.separator ""
+        opts.separator "Show available tasks:"
+        opts.separator "    bundle exec cap -T"
+        opts.separator ""
+        opts.separator "Invoke (or simulate invoking) a task:"
+        opts.separator "    bundle exec cap [--dry-run] STAGE TASK"
+        opts.separator ""
+        opts.separator "Advanced options:"
+
+        opts.on_tail("-h", "--help", "-H", "Display this help message.") do
+          puts opts
+          exit
+        end
+
+        standard_rake_options.each { |args| opts.on(*args) }
+        opts.environment('RAKEOPT')
+      end.parse!
     end
+
 
     def top_level_tasks
       if tasks_without_stage_dependency.include?(@top_level_tasks.first)
         @top_level_tasks
       else
-        @top_level_tasks.unshift(ensure_stage)
+        @top_level_tasks.unshift(ensure_stage.to_s)
       end
     end
 
     def exit_because_of_exception(ex)
-      if deploying?
+      if respond_to?(:deploying?) && deploying?
         exit_deploy_because_of_exception(ex)
       else
         super
@@ -39,6 +71,16 @@ module Capistrano
     end
 
     private
+
+    def load_imports
+      if options.show_tasks
+        invoke 'load:defaults'
+        set(:stage, '')
+        Dir[deploy_config_path, stage_definitions].each { |f| add_import f }
+      end
+
+      super
+    end
 
     # allows the `cap install` task to load without a capfile
     def capfile
@@ -63,6 +105,25 @@ module Capistrano
        }
       ]
     end
+
+    def roles
+      ['--roles ROLES', '-r',
+       "Filter command to only apply to these roles (separate multiple roles with a comma)",
+       lambda { |value|
+         Configuration.env.set(:filter, roles: value.split(","))
+       }
+      ]
+    end
+
+    def hostfilter
+      ['--hosts HOSTS', '-z',
+       "Filter command to only apply to these hosts (separate multiple hosts with a comma)",
+       lambda { |value|
+         Configuration.env.set(:filter, hosts: value.split(","))
+       }
+      ]
+    end
+
   end
 
 end

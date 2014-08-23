@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## Capistrano
 
 [![Build
@@ -99,17 +100,28 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 =======
 # Capistrano [![Build Status](https://travis-ci.org/capistrano/capistrano.png?branch=v3)](https://travis-ci.org/capistrano/capistrano) [![Code Climate](https://codeclimate.com/github/capistrano/capistrano.png)](https://codeclimate.com/github/capistrano/capistrano)
 >>>>>>> d13cab9bb78eb1ec9e4f0aea5ed2463390f2f036
+=======
+# Capistrano [![Build Status](https://travis-ci.org/capistrano/capistrano.svg?branch=master)](https://travis-ci.org/capistrano/capistrano) [![Code Climate](http://img.shields.io/codeclimate/github/capistrano/capistrano.svg)](https://codeclimate.com/github/capistrano/capistrano) <a href="http://codersclan.net/?repo_id=325&source=small"><img src="http://img.shields.io/badge/get-support-blue.svg"></a>
+>>>>>>> e63eda7a0f08a1ad80ad11d5f6073aa612aae233
 
 ## Requirements
 
 * Ruby >= 1.9 (JRuby and C-Ruby/YARV are supported)
+
+## Support
+
+Need help with getting Capistrano up and running? Got a code problem you want to get solved quickly?
+
+Get <a href="http://codersclan.net/?repo_id=325&source=link">Capistrano support on CodersClan.</a>
+
+<a href="http://codersclan.net/?repo_id=325&source=big"><img src="http://www.codersclan.net/gs_button/?repo_id=325" width="200"></a>
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ``` ruby
-gem 'capistrano', '~> 3.0.1'
+gem 'capistrano', '~> 3.2.0'
 ```
 
 And then execute:
@@ -147,7 +159,7 @@ $ bundle exec cap install STAGES=local,sandbox,qa,production
 ## Usage
 
 ``` sh
-$ bundle exec cap -vT
+$ bundle exec cap -T
 
 $ bundle exec cap staging deploy
 $ bundle exec cap production deploy
@@ -165,11 +177,19 @@ server 'example.org', roles: [:db, :workers]
 desc "Report Uptimes"
 task :uptime do
   on roles(:all) do |host|
-    info "Host #{host} (#{host.roles.join(', ')}):\t#{capture(:uptime)}"
+    execute :any_command, "with args", :here, "and here"
+    info "Host #{host} (#{host.roles.to_a.join(', ')}):\t#{capture(:uptime)}"
   end
 end
 ```
 
+**Note**:
+
+**tl;dr**: `execute(:bundle, :install)` and `execute('bundle install')` don't behave identically!
+
+`execute()` has a subtle behaviour. When calling `within './directory' { execute(:bundle, :install) }` for example, the first argument to `execute()` is a *Stringish* with ***no whitespace***. This allows the command to pass through the [SSHKit::CommandMap](https://github.com/capistrano/sshkit#the-command-map) which enables a number of powerful features.
+
+When the first argument to `execute()` contains whitespace, for example `within './directory' { execute('bundle install') }` (or when using a heredoc), neither Capistrano, nor SSHKit can reliably predict how it should be shell escaped, and thus cannot perform any context, or command mapping, that means that the `within(){}` (as well as `with()`, `as()`, etc) have no effect. There have been a few attempts to resolve this, but we don't consider it a bug although we acknowledge that it might be a little counter intuitive.
 ## Before / After
 
 Where calling on the same task name, executed in order of inclusion
@@ -191,7 +211,7 @@ after :finishing, :notify do
 end
 ```
 
-If it makes sense for your use-case (often, that means *generating a file*)
+If it makes sense for your use case (often, that means *generating a file*)
 the Rake prerequisite mechanism can be used:
 
 ``` ruby
@@ -210,12 +230,14 @@ end
 The final way to call out to other tasks is to simply `invoke()` them:
 
 ``` ruby
-task :one do
-  on roles(:all) { info "One" }
-end
-task :two do
-  invoke :one
-  on roles(:all) { info "Two" }
+namespace :example do
+  task :one do
+    on roles(:all) { info "One" }
+  end
+  task :two do
+    invoke "example:one"
+    on roles(:all) { info "Two" }
+  end
 end
 ```
 
@@ -226,7 +248,7 @@ This method is widely used.
 ``` ruby
 desc "Ask about breakfast"
 task :breakfast do
-  ask(:breakfast, "What would you like your colleagues to bring you for breakfast?")
+  ask(:breakfast, "pancakes")
   on roles(:all) do |h|
     execute "echo \"$(whoami) wants #{fetch(:breakfast)} for breakfast!\""
   end
@@ -235,13 +257,27 @@ end
 
 Perfect, who needs telephones.
 
+When using `ask` to get user input, you can pass `echo: false` to prevent the input from being displayed:
+
+```ruby
+ask(:database_password, "default", echo: false)
+```
+
+## Using password authentication
+
+Password authentication can be done via `set` and `ask` in your deploy environment file (e.g.: config/deploy/production.rb)
+
+```ruby
+set :password, ask('Server password', nil)
+server 'server.domain.com', user: 'ssh_user_name', port: 22, password: fetch(:password), roles: %w{web app db}
+```
 
 ## Running local tasks
 
 Local tasks can be run by replacing `on` with `run_locally`
 
 ``` ruby
-desc "Notify service of deployment"
+desc 'Notify service of deployment'
 task :notify do
   run_locally do
     with rails_env: :development do
@@ -251,6 +287,21 @@ task :notify do
 end
 ```
 
+Of course, you can always just use standard ruby syntax to run things locally
+``` ruby
+desc 'Notify service of deployment'
+task :notify do
+  %x('RAILS_ENV=development bundle exec rake "service:notify"')
+end
+```
+
+Alternatively you could use the rake syntax
+``` ruby
+desc "Notify service of deployment"
+task :notify do
+   sh 'RAILS_ENV=development bundle exec rake "service:notify"'
+end
+```
 ## Console
 
 **Note:** Here be dragons. The console is very immature, but it's much more
@@ -284,9 +335,9 @@ DEBUG [9ce34809]  leehambley pts/0        2013-06-13 17:11 (port-11262.pppoe.wtn
 
 ## A word about PTYs
 
-There is a configuration option which asks the backend driver to as the remote host
+There is a configuration option which asks the backend driver to ask the remote host
 to assign the connection a *pty*. A *pty* is a pseudo-terminal, which in effect means
-*tell the backend that this is an **interactive** session*. This is normally a bad idea.
+*tell the backend that this is an __interactive__ session*. This is normally a bad idea.
 
 Most of the differences are best explained by [this page](https://github.com/sstephenson/rbenv/wiki/Unix-shell-initialization) from the author of *rbenv*.
 
@@ -300,7 +351,7 @@ or at least they are being used incorrectly.
 Whilst, especially in the case of language runtimes (Ruby, Node, Python and friends in
 particular) there is a temptation to run multiple versions in parallel on a single server
 and to switch between them using environmental variables, this is an anti-pattern, and
-symptomatic of bad design (i.e. you're testing a second version of Ruby in production because
+symptomatic of bad design (e.g. you're testing a second version of Ruby in production because
 your company lacks the infrastructure to test this in a staging environment).
 
 ## Configuration
@@ -309,10 +360,10 @@ The following variables are settable:
 
 | Variable Name         | Description                                                          | Notes                                                           |
 |:---------------------:|----------------------------------------------------------------------|-----------------------------------------------------------------|
-| `:repo_url`           | The URL of your Git repository                                       | file://, https://, or ssh:// are all supported                  |
-| `:git_https_username` | The (optional) username for accessing your Git repository over HTTPS | if this is an SSH connection, this setting will have no effect. |
-| `:git_https_password` | The (optional) password for accessing your Git repository over HTTPS | if this is an SSH connection, this setting will have no effect. |
-| `:tmp_dir` | The (optional) temp directory that will be used (default: /tmp) | if you have a shared web host, this setting may need to be set (i.e. /home/user/tmp/capistrano). |
+| `:repo_url`           | The URL of your scm repository (git, hg, svn)                        | file://, https://, ssh://, or svn+ssh:// are all supported      |
+| `:branch`             | The branch you wish to deploy                                        | This only has meaning for git and hg repos, to specify the branch of an svn repo, set `:repo_url` to the branch location. |
+| `:scm`                | The source control system used                                       | `:git`, `:hg`, `:svn` are currently supported                   |
+| `:tmp_dir`            | The (optional) temp directory that will be used (default: /tmp)      | if you have a shared web host, this setting may need to be set (i.e. /home/user/tmp/capistrano). |
 
 __Support removed__ for following variables:
 
@@ -323,17 +374,42 @@ __Support removed__ for following variables:
 ## SSHKit
 
 [SSHKit](https://github.com/leehambley/sshkit) is the driver for SSH
-connections behind the scenes in Capistrano, depending how deep you dig, you
+connections behind the scenes in Capistrano. Depending on how deep you dig, you
 might run into interfaces that come directly from SSHKit (the configuration is
 a good example).
 
-## Licence
+## Testing
 
+Capistrano has two test suites: an RSpec suite and a Cucumber suite. The
+RSpec suite handles quick feedback unit specs. The Cucumber features are
+an integration suite that uses Vagrant to deploy to a real virtual
+server. In order to run the Cucumber suite you will need to install
+[Vagrant](http://www.vagrantup.com/) and Vagrant supported
+virtualization software like
+[VirtualBox](https://www.virtualbox.org/wiki/Downloads).
+
+```
+# To run the RSpec suite
+$ rake spec
+
+# To run the Cucumber suite
+$ rake features
+
+# To run the Cucumber suite and leave the VM running (faster for subsequent runs)
+$ rake features KEEP_RUNNING=1
+```
+
+## License
+
+<<<<<<< HEAD
 <<<<<<< HEAD
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">Capistrano</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="http://www.capistranorb.com." property="cc:attributionName" rel="cc:attributionURL">Lee Hambley and Tom Clements</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US">Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License</a>.<br />Based on a work at <a xmlns:dct="http://purl.org/dc/terms/" href="https://www.github.com/capistrano" rel="dct:source">https://www.github.com/capistrano</a>.
 >>>>>>> 8f436569fbbf55b246a385a1514f8bca85b28e13
 =======
 The MIT License (MIT)
+=======
+MIT License (MIT)
+>>>>>>> e63eda7a0f08a1ad80ad11d5f6073aa612aae233
 
 Copyright (c) 2012-2013 Tom Clements, Lee Hambley
 

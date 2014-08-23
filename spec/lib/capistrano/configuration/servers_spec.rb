@@ -61,13 +61,13 @@ module Capistrano
       describe 'finding the primary server' do
         it 'takes the first server if none have the primary property' do
           servers.add_role(:app, %w{1 2})
-          servers.fetch_primary(:app).hostname.should == '1'
+          expect(servers.fetch_primary(:app).hostname).to eq('1')
         end
 
         it 'takes the first server with the primary have the primary flag' do
           servers.add_role(:app, %w{1 2})
           servers.add_host('2', primary: true)
-          servers.fetch_primary(:app).hostname.should == '2'
+          expect(servers.fetch_primary(:app).hostname).to eq('2')
         end
       end
 
@@ -104,8 +104,19 @@ module Capistrano
           expect(servers.roles_for([:app]).first.hostname).to eq '1'
           expect(servers.roles_for([:web]).first.hostname).to eq '1'
           expect(servers.roles_for([:all]).first.properties.test).to eq :value
+          expect(servers.roles_for([:all]).first.properties.keys).to eq [:test]
         end
 
+        it 'can accept multiple servers with the same hostname but different ports or users' do
+          servers.add_host('1', roles: [:app, 'web'], test: :value, port: 12)
+          servers.add_host('1', roles: [:app, 'web'], test: :value, port: 34)
+          servers.add_host('1', roles: [:app, 'web'], test: :value, user: 'root')
+          servers.add_host('1', roles: [:app, 'web'], test: :value, user: 'deployer')
+          servers.add_host('1', roles: [:app, 'web'], test: :value, user: 'root', port: 34)
+          servers.add_host('1', roles: [:app, 'web'], test: :value, user: 'deployer', port: 34)
+          servers.add_host('1', roles: [:app, 'web'], test: :value, user: 'deployer', port: 56)
+          expect(servers.count).to eq(8)
+        end
       end
 
       describe 'selecting roles' do
@@ -174,6 +185,7 @@ module Capistrano
 
         before do
           ENV.stubs(:[]).with('ROLES').returns('web,db')
+          ENV.stubs(:[]).with('HOSTS').returns(nil)
           servers.add_host('1', roles: :app, active: true)
           servers.add_host('2', roles: :app)
           servers.add_host('3', roles: :web)

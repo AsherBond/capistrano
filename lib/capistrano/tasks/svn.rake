@@ -1,6 +1,6 @@
-namespace :hg do
+namespace :svn do
   def strategy
-    @strategy ||= Capistrano::Hg.new(self, fetch(:hg_strategy, Capistrano::Hg::DefaultStrategy))
+    @strategy ||= Capistrano::Svn.new(self, fetch(:svn_strategy, Capistrano::Svn::DefaultStrategy))
   end
 
   desc 'Check that the repo is reachable'
@@ -24,7 +24,7 @@ namespace :hg do
   end
 
   desc 'Pull changes from the remote repo'
-  task :update => :'hg:clone' do
+  task :update => :'svn:clone' do
     on release_roles :all do
       within repo_path do
         strategy.update
@@ -33,7 +33,7 @@ namespace :hg do
   end
 
   desc 'Copy repo to releases'
-  task :create_release => :'hg:update' do
+  task :create_release => :'svn:update' do
     on release_roles :all do
       within repo_path do
         strategy.release
